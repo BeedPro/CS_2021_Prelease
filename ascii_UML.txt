@@ -1,0 +1,71 @@
++-------------------------------+
+|             Piece             |
+|-------------------------------|
+| _BelongsToPlayer1             |
+| _ConnectionsToDestroy         |
+| _Destroyed                    |
+| _FuelCostOfMove               |
+| _PieceType                    |
+| _VPValue                      |
+|-------------------------------|
+| CheckMoveIsValid              |
+| DestroyPiece                  |
+| GetBelongsToPlayer1           |
+| GetConnectionsNeededToDestroy |
+| GetPieceType                  |
+| GetVPs                        |
+| HasMethod                     |
+| __init__                      |
++-------------------------------+
+        .                                                                 
+       /_\                                                                
+        |                      [ Piece ]                  [ Piece ]       
+        |                          .                          .           
+        |                         /_\                        /_\          
+        |                          |                          |           
+        |                          |                          |           
++------------------+       +------------------+       +------------------+
+|    LESSPiece     |       |    PBDSPiece     |       |    BaronPiece    |
+|------------------|       |------------------|       |------------------|
+| _PieceType       |       | _FuelCostOfMove  |       | _PieceType       |
+| _VPValue         |       | _PieceType       |       | _VPValue         |
+|------------------|       | _VPValue         |       |------------------|
+| CheckMoveIsValid |       |------------------|       | CheckMoveIsValid |
+| Saw              |       | CheckMoveIsValid |       | __init__         |
+| __init__         |       | Dig              |       +------------------+
++------------------+       | __init__         |                           
+                           +------------------+                           
+                                                                                           
+                                                                                           
+                                                                                           
+                                                                                           
++--------------------+       +-----------------------------+       +----------------------+
+|        Tile        |       |           HexGrid           |       |        Player        |
+|--------------------|       |-----------------------------|       |----------------------|
+| _Neighbours        |       | _Pieces                     |       | _Fuel                |
+| _PieceInTile       |       | _Player1Turn                |       | _Lumber              |
+| _Terrain           |       | _Size                       |       | _Name                |
+| _x                 |       | _Tiles                      |       | _PiecesInSupply      |
+| _y                 |       | __ListPositionOfTile        |       | _VPs                 |
+| _z                 |       |-----------------------------|       |----------------------|
+|--------------------|       | AddPiece                    |       | AddToVPs             |
+| AddToNeighbours    |       | DestroyPiecesAndCountVPs    |       | GetFuel              |
+| GetDistanceToTileT |       | ExecuteCommand              |       | GetLumber            |
+| GetNeighbours      |       | GetGridAsString             |       | GetName              |
+| GetPieceInTile     |       | GetPieceTypeInTile          |       | GetPiecesInSupply    |
+| GetTerrain         |       | SetUpGridTerrain            |       | GetStateString       |
+| Getx               |       | __CheckPieceAndTileAreValid |       | GetVPs               |
+| Gety               |       | __CheckTileIndexIsValid     |       | RemoveTileFromSupply |
+| Getz               |       | __CreateBottomLine          |       | UpdateFuel           |
+| SetPiece           |       | __CreateEvenLine            |       | UpdateLumber         |
+| SetTerrain         |       | __CreateOddLine             |       | __init__             |
+| __init__           |       | __CreateTopLine             |       +----------------------+
++--------------------+       | __ExecuteCommandInTile      |                               
+                             | __ExecuteMoveCommand        |                               
+                             | __ExecuteSpawnCommand       |                               
+                             | __ExecuteUpgradeCommand     |                               
+                             | __MovePiece                 |                               
+                             | __SetUpNeighbours           |                               
+                             | __SetUpTiles                |                               
+                             | __init__                    |                               
+                             +-----------------------------+                               

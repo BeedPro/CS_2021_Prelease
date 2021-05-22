@@ -1,0 +1,12 @@
+# PynSource Version 1.2
+{'type':'meta', 'info1':'Lorem ipsum dolor sit amet, consectetur adipiscing elit is latin. Comments are saved.'}
+{'type':'umlshape', 'id':'Piece', 'x':1232, 'y':87, 'width':242, 'height':282, 'attrs': '_BelongsToPlayer1|_ConnectionsToDestroy|_Destroyed|_FuelCostOfMove|_PieceType|_VPValue', 'meths': 'CheckMoveIsValid|DestroyPiece|GetBelongsToPlayer1|GetConnectionsNeededToDestroy|GetPieceType|GetVPs|HasMethod|__init__'}
+{'type':'umlshape', 'id':'BaronPiece', 'x':1282, 'y':600, 'width':138, 'height':122, 'attrs': '_PieceType|_VPValue', 'meths': 'CheckMoveIsValid|__init__'}
+{'type':'umlshape', 'id':'LESSPiece', 'x':1491, 'y':592, 'width':138, 'height':138, 'attrs': '_PieceType|_VPValue', 'meths': 'CheckMoveIsValid|Saw|__init__'}
+{'type':'umlshape', 'id':'PBDSPiece', 'x':1094, 'y':581, 'width':138, 'height':154, 'attrs': '_FuelCostOfMove|_PieceType|_VPValue', 'meths': 'CheckMoveIsValid|Dig|__init__'}
+{'type':'umlshape', 'id':'Tile', 'x':893, 'y':43, 'width':154, 'height':330, 'attrs': '_Neighbours|_PieceInTile|_Terrain|_x|_y|_z', 'meths': 'AddToNeighbours|GetDistanceToTileT|GetNeighbours|GetPieceInTile|GetTerrain|Getx|Gety|Getz|SetPiece|SetTerrain|__init__'}
+{'type':'umlshape', 'id':'HexGrid', 'x':329, 'y':41, 'width':245, 'height':458, 'attrs': '_Pieces|_Player1Turn|_Size|_Tiles|__ListPositionOfTile', 'meths': 'AddPiece|DestroyPiecesAndCountVPs|ExecuteCommand|GetGridAsString|GetPieceTypeInTile|SetUpGridTerrain|__CheckPieceAndTileAreValid|__CheckTileIndexIsValid|__CreateBottomLine|__CreateEvenLine|__CreateOddLine|__CreateTopLine|__ExecuteCommandInTile|__ExecuteMoveCommand|__ExecuteSpawnCommand|__ExecuteUpgradeCommand|__MovePiece|__SetUpNeighbours|__SetUpTiles|__init__'}
+{'type':'umlshape', 'id':'Player', 'x':639, 'y':45, 'width':170, 'height':314, 'attrs': '_Fuel|_Lumber|_Name|_PiecesInSupply|_VPs', 'meths': 'AddToVPs|GetFuel|GetLumber|GetName|GetPiecesInSupply|GetStateString|GetVPs|RemoveTileFromSupply|UpdateFuel|UpdateLumber|__init__'}
+{'type':'edge', 'id':'LESSPiece_to_Piece', 'source':'LESSPiece', 'target':'Piece', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'BaronPiece_to_Piece', 'source':'BaronPiece', 'target':'Piece', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'PBDSPiece_to_Piece', 'source':'PBDSPiece', 'target':'Piece', 'uml_edge_type': 'generalisation'}
