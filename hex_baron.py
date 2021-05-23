@@ -148,9 +148,6 @@ class HexGrid:
     self.__SetUpTiles()
     self.__SetUpNeighbours()
 
-  def GetTerrain(self):
-    return [ tile.GetTerrain() for tile in self._Tiles]
-
   def GetTiles(self):
     return self._Tiles
 
@@ -505,17 +502,50 @@ def SaveGame(Player1, Player2, Grid):
     player1 = f"{Player1.GetName()},{Player1.GetVPs()},{Player1.GetPiecesInSupply()},{Player1.GetLumber()},{Player1.GetFuel()}"
     player2 = f"{Player2.GetName()},{Player2.GetVPs()},{Player2.GetPiecesInSupply()},{Player2.GetLumber()},{Player2.GetFuel()}"
     gridSize = Grid.GetSize()
-    terrain = Grid.GetTerrain()
-    #pieces = Grid.GetPieceTypeInTile()
+    tiles = Grid.GetTiles()
+    terrain = [tile.GetTerrain() for tile in tiles]
+    pieces = []
+    for tileIndex in range(0, len(tiles), 1):
+      piece = tiles[tileIndex].GetPieceInTile()
+      if piece:
+        pieceType = piece.GetPieceType()
+        player  = "1" if pieceType.isupper() else "2"
+        if pieceType.lower() == "b":
+          returnPiece = "Baron"
+        if pieceType.lower() == "s":
+          returnPiece = "Serf"
+        if pieceType.lower() == "l":
+          returnPiece = "LESS"
+        if pieceType.lower() == "p":
+          returnPiece = "PDBS"  
+        pieces.append(f"{player},{returnPiece},{tileIndex}")
+    
+    data = f"{player1}\n{player2}\n{gridSize}\n{','.join(terrain)}\n"
+    for piece in pieces:
+      data += f"{piece}\n"
+    try:
+      with open(f"{FileName}", "w+") as file:
+        file.write(data)
+      return "Saving Successful"
+    except:
+      return "ERROR IN SAVING"
 
-    print(Grid.GetTerrain())
-
-    data = f"{player1}\n{player2}\n{gridSize}\n{','.join(terrain)}"
-    with open(f"{FileName}", "w+") as file:
-      file.write(data)
-
-
-  return ""
+def DrawGridWithTileNumbers(Grid):
+  tiles = Grid.GetTiles()
+  size = Grid.GetSize()
+  widhtLenght = len(tiles) // size
+  indexGrid = ""
+  line = 1
+  for tileIndex in range(len(tiles)):
+    if tileIndex % widhtLenght == 0:
+      indexGrid += "\n" 
+      if line == 1:
+        line *= -1
+      else:
+        indexGrid += "   "
+        line *= -1
+    indexGrid += f"  {tileIndex}   "
+  print(indexGrid)
 
 def SetUpDefaultGame():
   T = [" ", "#", "#", " ", "~", "~", " ", " ", " ", "~", " ", "#", "#", " ", " ", " ", " ", " ", "#", "#", "#", "#", "~", "~", "~", "~", "~", " ", "#", " ", "#", " "]
@@ -578,6 +608,7 @@ def PlayGame(Player1, Player2, Grid):
   print("Player Two current state - " + Player2.GetStateString())
   while not (GameOver and Player1Turn):
     print(Grid.GetGridAsString(Player1Turn))
+    DrawGridWithTileNumbers(Grid)
     if Player1Turn:
       print(Player1.GetName() + " state your three commands, pressing enter after each one.")
     else:
@@ -619,7 +650,7 @@ def PlayGame(Player1, Player2, Grid):
     Player2.AddToVPs(Player2VPsGained)
     print("Player One current state - " + Player1.GetStateString())
     print("Player Two current state - " + Player2.GetStateString())
-    SaveGame(Player1, Player2, Grid)
+    print(SaveGame(Player1, Player2, Grid))
     input("Press Enter to continue...")
   print(Grid.GetGridAsString(Player1Turn))
   DisplayEndMessages(Player1, Player2)
