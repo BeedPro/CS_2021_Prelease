@@ -535,19 +535,16 @@ def DrawGridWithTileNumbers(Grid):
   size = Grid.GetSize()
   widhtLenght = len(tiles) // size
   indexGrid = ""
-  rowDir = 1
   line = 1
   for tileIndex in range(len(tiles)):
-    
-    if tileIndex != 0 and tileIndex % widhtLenght == 0:
-      rowDir *= -1
-      line *= -1
-
-    if rowDir == -1 and line == 1:
-      indexGrid += "\n"
-      
-    indexGrid += f"{tileIndex}\t"
-      
+    if tileIndex % widhtLenght == 0:
+      indexGrid += "\n" 
+      if line == 1:
+        line *= -1
+      else:
+        indexGrid += "   "
+        line *= -1
+    indexGrid += f"  {tileIndex}   "
   print(indexGrid)
 
 def SetUpDefaultGame():
