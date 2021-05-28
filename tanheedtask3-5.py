@@ -7,8 +7,11 @@ import random
 import os
 
 class Piece:
+  '''
+  Class to create a new piece (Serf)
+  Parent to: BaronPiece, LESSPiece, PBDSPiece
+  '''
   def __init__(self, Player1):
-    """ Init of class Piece that does all the peice entities using attributes of the pieces"""
     self._FuelCostOfMove = 1
     self._BelongsToPlayer1 = Player1
     self._Destroyed = False
@@ -46,7 +49,10 @@ class Piece:
     self._Destroyed = True
 
 class BaronPiece(Piece):
-  """ Init of class Baron that does the final piece (like king in chess) using peice type and inherites Piece"""
+  '''
+  Class to create Baron piece
+  Inherits from Piece
+  '''
   def __init__(self, Player1):
     super(BaronPiece, self).__init__(Player1)
     self._PieceType = "B"
@@ -58,7 +64,10 @@ class BaronPiece(Piece):
     return -1
 
 class LESSPiece(Piece):
-  """ '~' is peat bog and '#' is forest '^' is mountain"""
+  '''
+  Class to create LESS piece (Lumberjack)
+  Inherits from Piece
+  '''
   def __init__(self, Player1):
     super(LESSPiece, self).__init__(Player1)
     self._PieceType = "L"
@@ -78,7 +87,10 @@ class LESSPiece(Piece):
     return 1
 
 class PBDSPiece(Piece):
-  """ Init of class PBDS that does Digging for oil using terrain and the piece type"""
+  '''
+  Class to create PBDS Piece (Fuel Digger)
+  Inherits from Piece
+  '''
   def __init__(self, Player1):
     super(PBDSPiece, self).__init__(Player1)
     self._PieceType = "P"
@@ -98,31 +110,35 @@ class PBDSPiece(Piece):
     else:
       return 5
 
-class MDSPiece( Piece ):
-  """ Init of class MDSPiece """
-  def __init__( self, Player1):
+class MDSPiece(Piece):
+  '''
+  My class to create Mountain Digger Serf (Fuel Digger)
+  Inherits from Piece
+  '''
+  def __init__(self, Player1):
     super(MDSPiece, self).__init__(Player1)
     self._PieceType = "M"
     self._VPValue = 2
     self._FuelCostOfMove = 2
 
   def CheckMoveIsValid(self, DistanceBetweenTiles, StartTerrain, EndTerrain):
-    if DistanceBetweenTiles == 1 and StartTerrain != "^":
-      return self._FuelCostOfMove
-    else:
+    if DistanceBetweenTiles != 1 or StartTerrain == "^":
       return -1
+    return self._FuelCostOfMove
 
   def Dig(self, Terrain):
     if Terrain != "^":
       return 0
     if random.random() < 0.9:
-      return 3  
-    else:
       return 1
-    
+    else:
+      return 3
 
 class Tile:
-  """ Init of class Tile that does the tiles of the grid using coordinates and terrain"""
+  '''
+  Class to create a tile
+  Assigns coordinates
+  '''
   def __init__(self, xcoord, ycoord, zcoord):
     self._x = xcoord
     self._y = ycoord
@@ -162,7 +178,14 @@ class Tile:
     return self._PieceInTile
 
 class HexGrid:
-  """ Init of class Hex Grid that does the hex grid of the  using player tunr and the size of game board"""
+  '''
+  Class to allow gameplay
+  Creates Grid
+  Adds terrain and pieces
+  Executes player commands
+  Allows you to move/destroy pieces
+  Counts Victory Points
+  '''
   def __init__(self, n):
     self._Size = n
     self._Player1Turn = True
@@ -172,26 +195,104 @@ class HexGrid:
     self.__SetUpTiles()
     self.__SetUpNeighbours()
 
-  def GetTiles(self):
-    return self._Tiles
+  #written to help save game
+  def GetGridSize(self):
+    return self._Size
+
+  #written to help save game
+  def GetTerrainPattern(self):
+    pattern = ""
+    for tile in self._Tiles:
+        pattern += tile.GetTerrain() + ","
+    return pattern
+
+##  #written to help save game
+##  def GetPiecePerTile(self):
+##      line = ""
+##      player = 1
+##      for tile in self._Tiles:
+##          piece = str(tile.GetPieceInTile())[10:-30:]
+##          return piece
+##          if (not piece == None):
+##              player = 2
+##          line += str(player) + "," + piece + "," + tile + "\n"
+##      return line
+
+  #written to help save game
+  def ObjToPiece(Obj):
+    Obj = Obj.GetPieceType()
+    if Obj == "B":
+      return "1,Baron"
+    elif Obj == "b":
+      return "2,Baron"
+    elif Obj == "S":
+      return "1,Serf"
+    elif Obj == "s":
+      return "2,Serf"
+    elif Obj == "L":
+      return "1,LESS"
+    elif Obj == "l":
+      return "2,LESS"
+    else:
+      return "PIECE_ERROR"
+    
+  #written to help save game
+  def GetPieceIndex(self):
+    GridIndexList = [individualpiece.GetPieceInTile() for individualpiece in self._Tiles]
+    for Index,Item in enumerate(GridIndexList):
+      if Item != None:
+        GridIndexList[Index] = [int(Index), HexGrid.ObjToPiece(Item)]
+    FinishedGridList = []
+    for Item in GridIndexList:
+      if Item != None:
+        FinishedGridList.append(Item[1] + "," + str(Item[0]))
+    return "\n".join(FinishedGridList)
+
+  #written to display tile index
+  def DrawGridWithTileNumbers(self):
+    count = 0
+    line = ""
+    for x in range(0,8):
+      for y in range(0,4):
+        if x%2 == 0:
+          if y == 0:
+            line += "   " + str(count)
+          else:
+            line += "     " + str(count)
+        else:
+          line += str(count) + "     "
+        count += 1
+      line += os.linesep
+    return line
 
   def SetUpGridTerrain(self, ListOfTerrain):
     for Count in range (0, len(ListOfTerrain)):
       self._Tiles[Count].SetTerrain(ListOfTerrain[Count])
 
   def AddPiece(self, BelongsToPlayer1, TypeOfPiece, Location):
+    '''
+    Spaws specific piece in the specified location
+    Adds new piece to list of players pieces
+    '''
     if TypeOfPiece == "Baron":
       NewPiece = BaronPiece(BelongsToPlayer1)
     elif TypeOfPiece == "LESS":
       NewPiece = LESSPiece(BelongsToPlayer1)
     elif TypeOfPiece == "PBDS":
       NewPiece = PBDSPiece(BelongsToPlayer1)
+    elif TypeOfPiece == "MDS":
+      NewPiece = MDSPiece(BelongsToPlayer1)
     else:
       NewPiece = Piece(BelongsToPlayer1)
     self._Pieces.append(NewPiece)
     self._Tiles[Location].SetPiece(NewPiece)
 
   def ExecuteCommand(self, Items, FuelAvailable, LumberAvailable, PiecesInSupply):
+    '''
+    Function for carrying out a command
+    Checks how much fuel/lumber/supplies available for command
+    Executes command if enough resources, otherwise, tells you it's invalid
+    '''
     FuelChange = 0
     LumberChange = 0
     SupplyChange = 0
@@ -229,6 +330,9 @@ class HexGrid:
     return False
 
   def __ExecuteCommandInTile(self, Items):
+    '''
+    Checks if command can be executed in specific tile
+    '''
     TileToUse = int(Items[1])
     Fuel = 0
     Lumber = 0
@@ -241,13 +345,22 @@ class HexGrid:
       if Items[0] == "Saw":
         Lumber += Method(self._Tiles[TileToUse].GetTerrain())
       elif Items[0] == "Dig":
-        Fuel += Method(self._Tiles[TileToUse].GetTerrain())
-        if abs(Fuel) > 2:
+        fuel = Method(self._Tiles[TileToUse].GetTerrain())
+        Fuel += fuel
+        if fuel == 3:
+          self._Tiles[TileToUse].SetTerrain("~")
+        #Fuel += Method(self._Tiles[TileToUse].GetTerrain())
+        elif abs(Fuel) > 2:
           self._Tiles[TileToUse].SetTerrain(" ")
       return True, Fuel, Lumber
     return False, Fuel, Lumber
 
   def __ExecuteMoveCommand(self, Items, FuelAvailable):
+    '''
+    Checks to see if piece can move
+    Based on distance and if tile is occupied
+    If possible, move
+    '''
     StartID = int(Items[1])
     EndID = int(Items[2])
     if not self.__CheckPieceAndTileAreValid(StartID) or not self.__CheckTileIndexIsValid(EndID):
@@ -263,6 +376,9 @@ class HexGrid:
     return FuelCost
 
   def __ExecuteSpawnCommand(self, Items, LumberAvailable, PiecesInSupply):
+    '''
+    Spawns piece in tile if possible
+    '''
     TileToUse = int(Items[1])
     if PiecesInSupply < 1 or LumberAvailable < 3 or not self.__CheckTileIndexIsValid(TileToUse):
       return -1
@@ -285,8 +401,12 @@ class HexGrid:
     return 3
 
   def __ExecuteUpgradeCommand(self, Items, LumberAvailable):
+    '''
+    Upgrades from serf to specialist piece
+    If piece is not a serf, upgrade is not possible
+    '''
     TileToUse = int(Items[2])
-    if not self.__CheckPieceAndTileAreValid(TileToUse) or LumberAvailable < 5 or not (Items[1] == "pbds" or Items[1] == "less"):
+    if not self.__CheckPieceAndTileAreValid(TileToUse) or LumberAvailable < 5 or not (Items[1] == "pbds" or Items[1] == "less" or Items[1] == "mds"):
       return -1
     else:
       ThePiece = self._Tiles[TileToUse].GetPieceInTile()
@@ -295,6 +415,8 @@ class HexGrid:
       ThePiece.DestroyPiece()
       if Items[1] == "pbds":
         ThePiece = PBDSPiece(self._Player1Turn)
+      if Items[1] == "mds":
+        ThePiece = MDSPiece(self._Player1Turn)
       else:
         ThePiece = LESSPiece(self._Player1Turn)
       self._Pieces.append(ThePiece)
@@ -302,6 +424,10 @@ class HexGrid:
       return 5
 
   def __SetUpTiles(self):
+    '''
+    Creates grid
+    With x,y,z coordinates
+    '''
     EvenStartY = 0
     EvenStartZ = 0
     OddStartZ = 0
@@ -333,6 +459,9 @@ class HexGrid:
           FromTile.AddToNeighbours(ToTile)
 
   def DestroyPiecesAndCountVPs(self):
+    '''
+    When piece is destroyed, adds victory point
+    '''
     BaronDestroyed = False
     Player1VPs = 0
     Player2VPs = 0
@@ -370,9 +499,6 @@ class HexGrid:
       self.__ListPositionOfTile += 1
       GridAsString += self.__CreateOddLine()
     return GridAsString + self.__CreateBottomLine()
-
-  def GetSize(self):
-    return self._Size
 
   def __MovePiece(self, NewIndex, OldIndex):
     self._Tiles[NewIndex].SetPiece(self._Tiles[OldIndex].GetPieceInTile())
@@ -427,7 +553,9 @@ class HexGrid:
     return Line
 
 class Player:
-  """ Init of class Player that does the players attributes using the values within the player class"""
+  '''
+  Class to create player
+  '''
   def __init__(self, N, V, F, L, T):
     self._Name = N
     self._VPs = V
@@ -436,6 +564,9 @@ class Player:
     self._PiecesInSupply = T
 
   def GetStateString(self):
+    '''
+    Return string of players points and resources
+    '''
     return "VPs: " + str(self._VPs) + "   Pieces in supply: " + str(self._PiecesInSupply) + "   Lumber: " + str(self._Lumber) + "   Fuel: " + str(self._Fuel)
 
   def GetVPs(self):
@@ -450,15 +581,14 @@ class Player:
   def GetName(self):
     return self._Name
 
-  def AddToVPs(self, vp):
-    self._VPs += vp
+  def AddToVPs(self, n):
+    self._VPs += n
 
-  def UpdateFuel(self, fuel):
-    self._Fuel += fuel
+  def UpdateFuel(self, n):
+    self._Fuel += n
 
-
-  def UpdateLumber(self, lumber):
-    self._Lumber += lumber
+  def UpdateLumber(self, n):
+    self._Lumber += n
 
   def GetPiecesInSupply(self):
     return self._PiecesInSupply
@@ -466,10 +596,11 @@ class Player:
   def RemoveTileFromSupply(self):
     self._PiecesInSupply -= 1
 
-""" Functional Programming """
-
 def Main():
-  """ Main function of the program"""
+  '''
+  Final game runs through this
+  Players and grid defined here
+  '''
   FileLoaded = True
   Player1 = None
   Player2 = None
@@ -486,8 +617,10 @@ def Main():
       if FileLoaded:
         PlayGame(Player1, Player2, Grid)
 
-
 def LoadGame():
+  '''
+  Allows user to load previously saved game from a file
+  '''
   FileName = input("Enter the name of the file to load: ")
   Items = []
   LineFromFile = ""
@@ -520,63 +653,31 @@ def LoadGame():
   return True, Player1, Player2, Grid
 
 def SaveGame(Player1, Player2, Grid):
-  Choice = input(f"Do you want to save: ")
-  if Choice.upper() == "YES" or Choice.upper() == "Y":
-    FileName = input("Enter filename that you wish to save under: ")
-    player1 = f"{Player1.GetName()},{Player1.GetVPs()},{Player1.GetPiecesInSupply()},{Player1.GetLumber()},{Player1.GetFuel()}"
-    player2 = f"{Player2.GetName()},{Player2.GetVPs()},{Player2.GetPiecesInSupply()},{Player2.GetLumber()},{Player2.GetFuel()}"
-    gridSize = Grid.GetSize()
-    tiles = Grid.GetTiles()
-    terrain = [tile.GetTerrain() for tile in tiles]
-    pieces = []
-    for tileIndex in range(0, len(tiles), 1):
-      piece = tiles[tileIndex].GetPieceInTile()
-      if piece:
-        pieceType = piece.GetPieceType()
-        player  = "1" if pieceType.isupper() else "2"
-        if pieceType.lower() == "b":
-          returnPiece = "Baron"
-        if pieceType.lower() == "s":
-          returnPiece = "Serf"
-        if pieceType.lower() == "l":
-          returnPiece = "LESS"
-        if pieceType.lower() == "p":
-          returnPiece = "PDBS"  
-        pieces.append(f"{player},{returnPiece},{tileIndex}")
-    
-    data = f"{player1}\n{player2}\n{gridSize}\n{','.join(terrain)}\n"
-    for piece in pieces:
-      data += f"{piece}\n"
-    try:
-      with open(f"{FileName}", "w+") as file:
-        file.write(data)
-      return "Saving Successful"
-    except:
-      return "ERROR IN SAVING"
-
-def DrawGridWithTileNumbers(Grid):
-  tiles = Grid.GetTiles()
-  size = Grid.GetSize()
-  widhtLenght = len(tiles) // size
-  indexGrid = ""
-  line = 1
-  for tileIndex in range(len(tiles)):
-    if tileIndex % widhtLenght == 0:
-      indexGrid += "\n" 
-      if line == 1:
-        line *= -1
-      else:
-        indexGrid += "   "
-        line *= -1
-    indexGrid += f"  {tileIndex}   "
-  print(indexGrid)
+  '''
+  My own subroutine to save game
+  '''
+  print(Grid.GetPiecePerTile())
+  FileName = input("Enter the name you want to save the game as: ")
+  FileIn = open(FileName + ".txt", "w")
+  FileIn.write("Player One," + str(Player1.GetVPs()) + "," + str(Player1.GetFuel()) + "," + str(Player1.GetLumber()) + "," + str(Player1.GetPiecesInSupply()) + "\n")
+  FileIn.write("Player Two," + str(Player2.GetVPs()) + "," + str(Player2.GetFuel()) + "," + str(Player2.GetLumber()) + "," + str(Player2.GetPiecesInSupply()) + "\n")
+  FileIn.write(str(Grid.GetGridSize()) + "\n")
+  FileIn.write(Grid.GetTerrainPattern() + "\n")
+  FileIn.write(Grid.GetPieceIndex())
+  #FileIn.write(Grid.GetPiecePerTile())
+  FileIn.close()
 
 def SetUpDefaultGame():
-  T = [" ", "#", "#", " ", "~", "~", " ", " ", " ", "~", " ", "#", "#", " ", " ", " ", " ", " ", "#", "#", "#", "#", "~", "~", "~", "~", "~", " ", "#", " ", "#", " "]
+  '''
+  Creates layout for brand new game
+  '''
+  T = [" ", "#", "#", " ", "~", "~", " ", "^", " ", "~", " ", "#", "#", " ", " ", " ", " ", " ", "#", "#", "#", "#", "~", "~", "~", "~", "~", " ", "#", " ", "#", " "]
   GridSize = 8
   Grid = HexGrid(GridSize)
-  Player1 = Player("Player One", 0, 10, 10, 5)
-  Player2 = Player("Player Two", 1, 10, 10, 5)
+  nameOne = input("Player 1, enter your name: ")
+  nameTwo = input("Player 2, enter your name: ")
+  Player1 = Player(nameOne, 0, 10, 10, 5)
+  Player2 = Player(nameTwo, 1, 10, 10, 5)
   Grid.SetUpGridTerrain(T)
   Grid.AddPiece(True, "Baron", 0)
   Grid.AddPiece(True, "Serf", 8)
@@ -605,7 +706,7 @@ def CheckStandardCommandFormat(Items):
 
 def CheckUpgradeCommandFormat(Items):
   if len(Items) == 3:
-    if Items[1].upper() != "LESS" and Items[1].upper() != "PBDS":
+    if Items[1].upper() != "LESS" and Items[1].upper() != "PBDS" and Items[1].upper() != "MDS":
       return False
     try:
       Result = int(Items[2])
@@ -625,20 +726,24 @@ def CheckCommandIsValid(Items):
   return False
 
 def PlayGame(Player1, Player2, Grid):
+  '''
+  Actual Game
+  Prompts user inputs etc.
+  '''
   GameOver = False
   Player1Turn = True
   Commands = []
-  print("Player One current state - " + Player1.GetStateString())
-  print("Player Two current state - " + Player2.GetStateString())
+  print(Player1.GetName() + " current state - " + Player1.GetStateString())
+  print(Player2.GetName() + " current state - " + Player2.GetStateString())
   while not (GameOver and Player1Turn):
     print(Grid.GetGridAsString(Player1Turn))
-    DrawGridWithTileNumbers(Grid)
+    print(Grid.DrawGridWithTileNumbers())
     if Player1Turn:
       print(Player1.GetName() + " state your three commands, pressing enter after each one.")
     else:
       print(Player2.GetName() + " state your three commands, pressing enter after each one.")
     for Count in range (1, 4):
-      Commands.append(input("Enter command: ").lower())
+      Commands.append(input("Enter command: ").lower().lstrip().rstrip())
     for C in Commands:
       Items = C.split(" ")
       ValidCommand = CheckCommandIsValid(Items)
@@ -672,10 +777,10 @@ def PlayGame(Player1, Player2, Grid):
       GameOver, Player1VPsGained, Player2VPsGained = Grid.DestroyPiecesAndCountVPs()
     Player1.AddToVPs(Player1VPsGained)
     Player2.AddToVPs(Player2VPsGained)
-    print("Player One current state - " + Player1.GetStateString())
-    print("Player Two current state - " + Player2.GetStateString())
-    print(SaveGame(Player1, Player2, Grid))
-    input("Press Enter to continue...")
+    print(Player1.GetName() + " current state - " + Player1.GetStateString())
+    print(Player2.GetName() + " current state - " + Player2.GetStateString())
+    if (input("Press Enter to continue or S to save the game: ")).upper() == "S":
+      SaveGame(Player1, Player2, Grid)
   print(Grid.GetGridAsString(Player1Turn))
   DisplayEndMessages(Player1, Player2)
 
