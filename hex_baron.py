@@ -198,6 +198,8 @@ class HexGrid:
             NewPiece = LESSPiece(BelongsToPlayer1)
         elif TypeOfPiece == "PBDS":
             NewPiece = PBDSPiece(BelongsToPlayer1)
+        elif TypeOfPiece == "MDS":
+            NewPiece = MDSPiece(BelongsToPlayer1)
         else:
             NewPiece = Piece(BelongsToPlayer1)
         self._Pieces.append(NewPiece)
@@ -255,7 +257,11 @@ class HexGrid:
             if Items[0] == "Saw":
                 Lumber += Method(self._Tiles[TileToUse].GetTerrain())
             elif Items[0] == "Dig":
-                Fuel += Method(self._Tiles[TileToUse].GetTerrain())
+                gotten_fuel = Method(self._Tiles[TileToUse].GetTerrain())
+                Fuel += gotten_fuel
+                print(gotten_fuel)
+                if gotten_fuel == 3:
+                    self._Tiles[TileToUse].SetTerrain("~")
                 if abs(Fuel) > 2:
                     self._Tiles[TileToUse].SetTerrain(" ")
             return True, Fuel, Lumber
@@ -301,7 +307,7 @@ class HexGrid:
 
     def __ExecuteUpgradeCommand(self, Items, LumberAvailable):
         TileToUse = int(Items[2])
-        if not self.__CheckPieceAndTileAreValid(TileToUse) or LumberAvailable < 5 or not (Items[1] == "pbds" or Items[1] == "less"):
+        if not self.__CheckPieceAndTileAreValid(TileToUse) or LumberAvailable < 5 or not (Items[1] == "pbds" or Items[1] == "less" or Items[1] == "mds"):
             return -1
         else:
             ThePiece = self._Tiles[TileToUse].GetPieceInTile()
@@ -310,7 +316,7 @@ class HexGrid:
             ThePiece.DestroyPiece()
             if Items[1] == "pbds":
                 ThePiece = PBDSPiece(self._Player1Turn)
-            elif Items[1] == "mds":
+            if Items[1] == "mds":
                 ThePiece = MDSPiece(self._Player1Turn)
             else:
                 ThePiece = LESSPiece(self._Player1Turn)
@@ -367,7 +373,9 @@ class HexGrid:
                     if ThePiece.GetPieceType().upper() == "B":
                         BaronDestroyed = True
                     ListOfTilesContainingDestroyedPieces.append(T)
-                    if ThePiece.GetBelongsToPlayer1():
+                    if ThePiece.GetPieceType().upper() == "M":
+                        Player1VPs += 2
+                    elif ThePiece.GetBelongsToPlayer1():
                         Player2VPs += ThePiece.GetVPs()
                     else:
                         Player1VPs += ThePiece.GetVPs()
@@ -603,12 +611,12 @@ def DrawGridWithTileNumbers(Grid):
 
 
 def SetUpDefaultGame():
-    T = [" ", "#", "#", " ", "~", "~", " ", " ", " ", "~", " ", "#", "#", " ", " ", " ",
-         " ", " ", "#", "#", "#", "#", "~", "~", "~", "~", "~", " ", "#", " ", "#", " "]
+    T = [" ", "#", "#", " ", "~", "~", " ", "^", " ", "~", " ", "#", "#", " ", " ", " ",
+         "^", " ", "#", "#", "#", "#", "~", "~", "~", "~", "~", " ", "#", " ", "#", " "]
     GridSize = 8
     Grid = HexGrid(GridSize)
-    Player1 = Player("Player One", 0, 10, 10, 5)
-    Player2 = Player("Player Two", 1, 10, 10, 5)
+    Player1 = Player(input("Player One name: "), 0, 10, 10, 5)
+    Player2 = Player(input("Player Two name: "), 1, 10, 10, 5)
     Grid.SetUpGridTerrain(T)
     Grid.AddPiece(True, "Baron", 0)
     Grid.AddPiece(True, "Serf", 8)
@@ -677,7 +685,7 @@ def PlayGame(Player1, Player2, Grid):
             print(Player2.GetName() +
                   " state your three commands, pressing enter after each one.")
         for Count in range(1, 4):
-            Commands.append(input("Enter command: ").lower())
+            Commands.append(input("Enter command: ").lower().strip().rstrip())
         for C in Commands:
             Items = C.split(" ")
             ValidCommand = CheckCommandIsValid(Items)
