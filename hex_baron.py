@@ -215,6 +215,8 @@ class HexGrid:
       if LumberCost < 0:
         return "Upgrade not possible", FuelChange, LumberChange, SupplyChange
       LumberChange = -LumberCost
+    elif Items[0] == "downgrade":
+      LumberCost = self.__ExecuteDowngradeCommand(Items, LumberAvailable)
     return "Command executed", FuelChange, LumberChange, SupplyChange
 
   def __CheckTileIndexIsValid(self, TileToCheck):
@@ -300,6 +302,21 @@ class HexGrid:
       self._Pieces.append(ThePiece)
       self._Tiles[TileToUse].SetPiece(ThePiece)
       return 5
+
+  def __ExecuteDowngradeCommand(self, Items, LumberAvailable):
+    TileToUse = int(Items[1])
+    PieceInTile = self.GetPieceTypeInTile(TileToUse)
+    if not PieceInTile.upper() in ["L", "P"] or LumberAvailable < 1 :
+      return -1
+    else:
+      ThePiece = self._Tiles[TileToUse].GetPieceInTile()
+      ThePiece.DestroyPiece()
+      ThePiece = Piece(self._Player1Turn)
+      self._Pieces.append(ThePiece)
+      self._Tiles[TileToUse].SetPiece(ThePiece)
+    return 1
+    
+
 
   def __SetUpTiles(self):
     EvenStartY = 0
@@ -614,6 +631,13 @@ def CheckUpgradeCommandFormat(Items):
     return True
   return False
 
+### CHecking stuff
+def CheckDowngradeCommandFormat(Items):
+  if len(Items) == 2:
+    if Items[1].isdigit():
+      return True
+  return False
+
 def CheckCommandIsValid(Items):
   if len(Items) > 0:
     if Items[0] == "move":
@@ -622,6 +646,8 @@ def CheckCommandIsValid(Items):
       return CheckStandardCommandFormat(Items)
     elif Items[0] == "upgrade":
       return CheckUpgradeCommandFormat(Items)
+    elif Items[0] == "downgrade":
+      return CheckDowngradeCommandFormat(Items)
   return False
 
 def PlayGame(Player1, Player2, Grid):
