@@ -173,204 +173,6 @@ class Tile:
 
 
 class HexGrid:
-<<<<<<< HEAD
-  """ Init of class Hex Grid that does the hex grid of the  using player tunr and the size of game board"""
-  def __init__(self, n):
-    self._Size = n
-    self._Player1Turn = True
-    self._Tiles = []
-    self._Pieces = []
-    self.__ListPositionOfTile = 0
-    self.__SetUpTiles()
-    self.__SetUpNeighbours()
-
-  def GetTiles(self):
-    return self._Tiles
-
-  def SetUpGridTerrain(self, ListOfTerrain):
-    for Count in range (0, len(ListOfTerrain)):
-      self._Tiles[Count].SetTerrain(ListOfTerrain[Count])
-
-  def AddPiece(self, BelongsToPlayer1, TypeOfPiece, Location):
-    if TypeOfPiece == "Baron":
-      NewPiece = BaronPiece(BelongsToPlayer1)
-    elif TypeOfPiece == "LESS":
-      NewPiece = LESSPiece(BelongsToPlayer1)
-    elif TypeOfPiece == "PBDS":
-      NewPiece = PBDSPiece(BelongsToPlayer1)
-    else:
-      NewPiece = Piece(BelongsToPlayer1)
-    self._Pieces.append(NewPiece)
-    self._Tiles[Location].SetPiece(NewPiece)
-
-  def ExecuteCommand(self, Items, FuelAvailable, LumberAvailable, PiecesInSupply):
-    FuelChange = 0
-    LumberChange = 0
-    SupplyChange = 0
-    if Items[0] == "move":
-      FuelCost = self.__ExecuteMoveCommand(Items, FuelAvailable)
-      if FuelCost < 0:
-        return "That move can't be done", FuelChange, LumberChange, SupplyChange
-      FuelChange = -FuelCost
-    elif Items[0] in ["saw", "dig"]:
-      Success, FuelChange, LumberChange = self.__ExecuteCommandInTile(Items)
-      if not Success:
-        return "Couldn't do that", FuelChange, LumberChange, SupplyChange
-    elif Items[0] == "spawn":
-      LumberCost = self.__ExecuteSpawnCommand(Items, LumberAvailable, PiecesInSupply)
-      if LumberCost < 0:
-        return "Spawning did not occur", FuelChange, LumberChange, SupplyChange
-      LumberChange = -LumberCost
-      SupplyChange = 1
-    elif Items[0] == "upgrade":
-      LumberCost = self.__ExecuteUpgradeCommand(Items, LumberAvailable)
-      if LumberCost < 0:
-        return "Upgrade not possible", FuelChange, LumberChange, SupplyChange
-      LumberChange = -LumberCost
-    elif Items[0] == "downgrade":
-      LumberCost = self.__ExecuteDowngradeCommand(Items, LumberAvailable)
-    return "Command executed", FuelChange, LumberChange, SupplyChange
-
-  def __CheckTileIndexIsValid(self, TileToCheck):
-    return TileToCheck >= 0 and TileToCheck < len(self._Tiles)
-
-  def __CheckPieceAndTileAreValid(self, TileToUse):
-    if self.__CheckTileIndexIsValid(TileToUse):
-      ThePiece = self._Tiles[TileToUse].GetPieceInTile()
-      if ThePiece is not None:
-        if ThePiece.GetBelongsToPlayer1() == self._Player1Turn:
-          return True
-    return False
-
-  def __ExecuteCommandInTile(self, Items):
-    TileToUse = int(Items[1])
-    Fuel = 0
-    Lumber = 0
-    if self.__CheckPieceAndTileAreValid(TileToUse) == False:
-      return False, Fuel, Lumber
-    ThePiece = self._Tiles[TileToUse].GetPieceInTile()
-    Items[0] = Items[0][0].upper() + Items[0][1:]
-    if ThePiece.HasMethod(Items[0]):
-      Method = getattr(ThePiece, Items[0], None)
-      if Items[0] == "Saw":
-        Lumber += Method(self._Tiles[TileToUse].GetTerrain())
-      elif Items[0] == "Dig":
-        Fuel += Method(self._Tiles[TileToUse].GetTerrain())
-        if abs(Fuel) > 2:
-          self._Tiles[TileToUse].SetTerrain(" ")
-      return True, Fuel, Lumber
-    return False, Fuel, Lumber
-
-  def __ExecuteMoveCommand(self, Items, FuelAvailable):
-    StartID = int(Items[1])
-    EndID = int(Items[2])
-    if not self.__CheckPieceAndTileAreValid(StartID) or not self.__CheckTileIndexIsValid(EndID):
-      return -1
-    ThePiece = self._Tiles[StartID].GetPieceInTile()
-    if self._Tiles[EndID].GetPieceInTile() is not None:
-      return -1
-    Distance = self._Tiles[StartID].GetDistanceToTileT(self._Tiles[EndID])
-    FuelCost = ThePiece.CheckMoveIsValid(Distance, self._Tiles[StartID].GetTerrain(), self._Tiles[EndID].GetTerrain())
-    if FuelCost == -1 or FuelAvailable < FuelCost:
-      return -1
-    self.__MovePiece(EndID, StartID)
-    return FuelCost
-
-  def __ExecuteSpawnCommand(self, Items, LumberAvailable, PiecesInSupply):
-    TileToUse = int(Items[1])
-    if PiecesInSupply < 1 or LumberAvailable < 3 or not self.__CheckTileIndexIsValid(TileToUse):
-      return -1
-    ThePiece = self._Tiles[TileToUse].GetPieceInTile()
-    if ThePiece is not None:
-      return -1
-    OwnBaronIsNeighbour = False
-    ListOfNeighbours = self._Tiles[TileToUse].GetNeighbours()
-    for N in ListOfNeighbours:
-      ThePiece = N.GetPieceInTile()
-      if ThePiece is not None:
-        if self._Player1Turn and ThePiece.GetPieceType() == "B" or not self._Player1Turn and ThePiece.GetPieceType() == "b":
-          OwnBaronIsNeighbour = True
-          break
-    if not OwnBaronIsNeighbour:
-      return -1
-    NewPiece = Piece(self._Player1Turn)
-    self._Pieces.append(NewPiece)
-    self._Tiles[TileToUse].SetPiece(NewPiece)
-    return 3
-
-  def __ExecuteUpgradeCommand(self, Items, LumberAvailable):
-    TileToUse = int(Items[2])
-    if not self.__CheckPieceAndTileAreValid(TileToUse) or LumberAvailable < 5 or not (Items[1] == "pbds" or Items[1] == "less"):
-      return -1
-    else:
-      ThePiece = self._Tiles[TileToUse].GetPieceInTile()
-      if ThePiece.GetPieceType().upper() != "S":
-        return -1
-      ThePiece.DestroyPiece()
-      if Items[1] == "pbds":
-        ThePiece = PBDSPiece(self._Player1Turn)
-      else:
-        ThePiece = LESSPiece(self._Player1Turn)
-      self._Pieces.append(ThePiece)
-      self._Tiles[TileToUse].SetPiece(ThePiece)
-      return 5
-
-  def __ExecuteDowngradeCommand(self, Items, LumberAvailable):
-    TileToUse = int(Items[1])
-    PieceInTile = self.GetPieceTypeInTile(TileToUse)
-    if not PieceInTile.upper() in ["L", "P"] or LumberAvailable < 1 :
-      return -1
-    else:
-      ThePiece = self._Tiles[TileToUse].GetPieceInTile()
-      ThePiece.DestroyPiece()
-      ThePiece = Piece(self._Player1Turn)
-      self._Pieces.append(ThePiece)
-      self._Tiles[TileToUse].SetPiece(ThePiece)
-    return 1
-    
-
-
-  def __SetUpTiles(self):
-    EvenStartY = 0
-    EvenStartZ = 0
-    OddStartZ = 0
-    OddStartY = -1
-    for count in range (1, self._Size // 2 + 1):
-      y = EvenStartY
-      z = EvenStartZ
-      for x in range (0, self._Size - 1, 2):
-        TempTile = Tile(x, y, z)
-        self._Tiles.append(TempTile)
-        y -= 1
-        z -= 1
-      EvenStartZ += 1
-      EvenStartY -= 1
-      y = OddStartY
-      z = OddStartZ
-      for x in range (1, self._Size, 2):
-        TempTile = Tile(x, y, z)
-        self._Tiles.append(TempTile)
-        y -= 1
-        z -= 1
-      OddStartZ += 1
-      OddStartY -= 1
-
-  def __SetUpNeighbours(self):
-    for FromTile in self._Tiles:
-      for ToTile in self._Tiles:
-        if FromTile.GetDistanceToTileT(ToTile) == 1:
-          FromTile.AddToNeighbours(ToTile)
-
-  def DestroyPiecesAndCountVPs(self):
-    BaronDestroyed = False
-    Player1VPs = 0
-    Player2VPs = 0
-    ListOfTilesContainingDestroyedPieces = []
-    for T in self._Tiles:
-      if T.GetPieceInTile() is not None:
-        ListOfNeighbours = T.GetNeighbours()
-        NoOfConnections = 0
-=======
     """ Init of class Hex Grid that does the hex grid of the  using player tunr and the size of game board"""
 
     def __init__(self, n):
@@ -396,8 +198,6 @@ class HexGrid:
             NewPiece = LESSPiece(BelongsToPlayer1)
         elif TypeOfPiece == "PBDS":
             NewPiece = PBDSPiece(BelongsToPlayer1)
-        elif TypeOfPiece == "MDS":
-            NewPiece = MDSPiece(BelongsToPlayer1)
         else:
             NewPiece = Piece(BelongsToPlayer1)
         self._Pieces.append(NewPiece)
@@ -429,6 +229,8 @@ class HexGrid:
             if LumberCost < 0:
                 return "Upgrade not possible", FuelChange, LumberChange, SupplyChange
             LumberChange = -LumberCost
+        elif Items[0] == "downgrade":
+            LumberCost = self.__ExecuteDowngradeCommand(Items, LumberAvailable)
         return "Command executed", FuelChange, LumberChange, SupplyChange
 
     def __CheckTileIndexIsValid(self, TileToCheck):
@@ -455,11 +257,7 @@ class HexGrid:
             if Items[0] == "Saw":
                 Lumber += Method(self._Tiles[TileToUse].GetTerrain())
             elif Items[0] == "Dig":
-                gotten_fuel = Method(self._Tiles[TileToUse].GetTerrain())
-                Fuel += gotten_fuel
-                print(gotten_fuel)
-                if gotten_fuel == 3:
-                    self._Tiles[TileToUse].SetTerrain("~")
+                Fuel += Method(self._Tiles[TileToUse].GetTerrain())
                 if abs(Fuel) > 2:
                     self._Tiles[TileToUse].SetTerrain(" ")
             return True, Fuel, Lumber
@@ -490,7 +288,6 @@ class HexGrid:
             return -1
         OwnBaronIsNeighbour = False
         ListOfNeighbours = self._Tiles[TileToUse].GetNeighbours()
->>>>>>> 52f2d8e393b48d62d6af96dd4eb3799817a920b3
         for N in ListOfNeighbours:
             ThePiece = N.GetPieceInTile()
             if ThePiece is not None:
@@ -503,6 +300,89 @@ class HexGrid:
         self._Pieces.append(NewPiece)
         self._Tiles[TileToUse].SetPiece(NewPiece)
         return 3
+
+    def __ExecuteUpgradeCommand(self, Items, LumberAvailable):
+        TileToUse = int(Items[2])
+        if not self.__CheckPieceAndTileAreValid(TileToUse) or LumberAvailable < 5 or not (Items[1] == "pbds" or Items[1] == "less"):
+            return -1
+        else:
+            ThePiece = self._Tiles[TileToUse].GetPieceInTile()
+            if ThePiece.GetPieceType().upper() != "S":
+                return -1
+            ThePiece.DestroyPiece()
+            if Items[1] == "pbds":
+                ThePiece = PBDSPiece(self._Player1Turn)
+            else:
+                ThePiece = LESSPiece(self._Player1Turn)
+            self._Pieces.append(ThePiece)
+            self._Tiles[TileToUse].SetPiece(ThePiece)
+            return 5
+
+    def __ExecuteDowngradeCommand(self, Items, LumberAvailable):
+        TileToUse = int(Items[1])
+        PieceInTile = self.GetPieceTypeInTile(TileToUse)
+        if not PieceInTile.upper() in ["L", "P"] or LumberAvailable < 1:
+            return -1
+        else:
+            ThePiece = self._Tiles[TileToUse].GetPieceInTile()
+            ThePiece.DestroyPiece()
+            ThePiece = Piece(self._Player1Turn)
+            self._Pieces.append(ThePiece)
+            self._Tiles[TileToUse].SetPiece(ThePiece)
+        return 1
+
+    def __SetUpTiles(self):
+        EvenStartY = 0
+        EvenStartZ = 0
+        OddStartZ = 0
+        OddStartY = -1
+        for count in range(1, self._Size // 2 + 1):
+            y = EvenStartY
+            z = EvenStartZ
+            for x in range(0, self._Size - 1, 2):
+                TempTile = Tile(x, y, z)
+                self._Tiles.append(TempTile)
+                y -= 1
+                z -= 1
+            EvenStartZ += 1
+            EvenStartY -= 1
+            y = OddStartY
+            z = OddStartZ
+            for x in range(1, self._Size, 2):
+                TempTile = Tile(x, y, z)
+                self._Tiles.append(TempTile)
+                y -= 1
+                z -= 1
+            OddStartZ += 1
+            OddStartY -= 1
+
+    def __SetUpNeighbours(self):
+        for FromTile in self._Tiles:
+            for ToTile in self._Tiles:
+                if FromTile.GetDistanceToTileT(ToTile) == 1:
+                    FromTile.AddToNeighbours(ToTile)
+
+    def DestroyPiecesAndCountVPs(self):
+        BaronDestroyed = False
+        Player1VPs = 0
+        Player2VPs = 0
+        ListOfTilesContainingDestroyedPieces = []
+        for T in self._Tiles:
+            if T.GetPieceInTile() is not None:
+                ListOfNeighbours = T.GetNeighbours()
+                NoOfConnections = 0
+                for N in ListOfNeighbours:
+                    ThePiece = N.GetPieceInTile()
+                    if ThePiece is not None:
+                        if self._Player1Turn and ThePiece.GetPieceType() == "B" or not self._Player1Turn and ThePiece.GetPieceType() == "b":
+                            OwnBaronIsNeighbour = True
+                            break
+                if not OwnBaronIsNeighbour:
+                    return -1
+                NewPiece = Piece(self._Player1Turn)
+                self._Pieces.append(NewPiece)
+                # self._Tiles[TileToUse].SetPiece(NewPiece)
+                return 3
 
     def __ExecuteUpgradeCommand(self, Items, LumberAvailable):
         TileToUse = int(Items[2])
@@ -857,26 +737,15 @@ def CheckUpgradeCommandFormat(Items):
     return False
 
 
-### CHecking stuff
+# CHecking stuff
 def CheckDowngradeCommandFormat(Items):
-  if len(Items) == 2:
-    if Items[1].isdigit():
-      return True
-  return False
+    if len(Items) == 2:
+        if Items[1].isdigit():
+            return True
+    return False
+
 
 def CheckCommandIsValid(Items):
-<<<<<<< HEAD
-  if len(Items) > 0:
-    if Items[0] == "move":
-      return CheckMoveCommandFormat(Items)
-    elif Items[0] in ["dig", "saw", "spawn"]:
-      return CheckStandardCommandFormat(Items)
-    elif Items[0] == "upgrade":
-      return CheckUpgradeCommandFormat(Items)
-    elif Items[0] == "downgrade":
-      return CheckDowngradeCommandFormat(Items)
-  return False
-=======
     if len(Items) > 0:
         if Items[0] == "move":
             return CheckMoveCommandFormat(Items)
@@ -884,9 +753,10 @@ def CheckCommandIsValid(Items):
             return CheckStandardCommandFormat(Items)
         elif Items[0] == "upgrade":
             return CheckUpgradeCommandFormat(Items)
+        elif Items[0] == "downgrade":
+            return CheckDowngradeCommandFormat(Items)
     return False
 
->>>>>>> 52f2d8e393b48d62d6af96dd4eb3799817a920b3
 
 def PlayGame(Player1, Player2, Grid):
     GameOver = False
